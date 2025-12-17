@@ -1429,13 +1429,13 @@
             
             // Set fees information
             let feesInfo = '';
-            feesInfo += `<div class="modal-row"><div class="modal-label">夏季校服</div><div class="modal-value">${`${props.summer_uniform_tc}` || '未提供'}</div></div>`;
-            feesInfo += `<div class="modal-row"><div class="modal-label">冬季校服</div><div class="modal-value">${`${props.winter_uniform_tc}` || '未提供'}</div></div>`;
-            feesInfo += `<div class="modal-row"><div class="modal-label">書包</div><div class="modal-value">${`${props.school_bag_tc}` || '未提供'}</div></div>`;
-            feesInfo += `<div class="modal-row"><div class="modal-label">茶點</div><div class="modal-value">${`${props.tea_and_snacks_tc}` || '未提供'}</div></div>`;
-            feesInfo += `<div class="modal-row"><div class="modal-label">教科書</div><div class="modal-value">${`${props.textbooks_tc}` || '未提供'}</div></div>`;
-            feesInfo += `<div class="modal-row"><div class="modal-label">作業簿</div><div class="modal-value">${`${props.exercise_books_or_workbooks_tc}` || '未提供'}</div></div>`;
-            feesInfo += `<div class="modal-row"><div class="modal-label">文具</div><div class="modal-value">${`${props.stationery_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">夏季校服</div><div class="modal-value">${`$${props.summer_uniform_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">冬季校服</div><div class="modal-value">${`$${props.winter_uniform_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">書包</div><div class="modal-value">${`$${props.school_bag_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">茶點</div><div class="modal-value">${`$${props.tea_and_snacks_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">教科書</div><div class="modal-value">${`$${props.textbooks_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">作業簿</div><div class="modal-value">${`$${props.exercise_books_or_workbooks_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">文具</div><div class="modal-value">${`$${props.stationery_tc}` || '未提供'}</div></div>`;
             if (props.fees_certificate) {
                 feesInfo += `<div class="modal-row"><div class="modal-label">學費證明書</div><div class="modal-value"><a href="${props.fees_certificate}" target="_blank">查看學費證明書</a></div></div>`;
             }
