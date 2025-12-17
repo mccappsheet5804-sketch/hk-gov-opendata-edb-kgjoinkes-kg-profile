@@ -1,0 +1,1602 @@
+<!DOCTYPE html>
+<html lang="zh-Hant-HK">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>幼稚園及幼稚園暨幼兒中心查詢系統</title>
+    <!-- Leaflet CSS -->
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Segoe UI', 'Microsoft JhengHei', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            background-color: #f5f5f5;
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #4CAF50, #2E7D32);
+            color: white;
+            padding: 15px 20px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+        }
+
+        .header h1 {
+            font-size: 1.5rem;
+            margin-bottom: 5px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .header h1 i {
+            color: #FFEB3B;
+        }
+
+        .header p {
+            font-size: 0.9rem;
+            opacity: 0.9;
+            max-width: 800px;
+        }
+
+        .container {
+            display: flex;
+            flex: 1;
+            overflow: hidden;
+        }
+
+        /* Accordion Styles */
+        .accordion-panel {
+            width: 400px;
+            background-color: white;
+            border-right: 1px solid #ddd;
+            display: flex;
+            flex-direction: column;
+            box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+            z-index: 500;
+            transition: transform 0.3s ease;
+        }
+
+        .accordion {
+            flex: 1;
+            overflow-y: auto;
+            padding: 15px;
+        }
+
+        .accordion-item {
+            margin-bottom: 15px;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+            border: 1px solid #e0e0e0;
+        }
+
+        .accordion-header {
+            background-color: #4CAF50;
+            color: white;
+            padding: 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            transition: background-color 0.2s;
+        }
+
+        .accordion-header:hover {
+            background-color: #388E3C;
+        }
+
+        .accordion-header.active {
+            background-color: #1B5E20;
+        }
+
+        .accordion-content {
+            background-color: white;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+        }
+
+        .accordion-content.active {
+            padding: 20px;
+            max-height: 500px;
+            overflow-y: auto;
+        }
+
+        /* District Accordion Styles */
+        .district-accordion {
+            margin-bottom: 10px;
+        }
+
+        .district-header {
+            background-color: #2196F3;
+            color: white;
+            padding: 12px 15px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            border-radius: 6px;
+            margin-bottom: 5px;
+            transition: background-color 0.2s;
+        }
+
+        .district-header:hover {
+            background-color: #1976D2;
+        }
+
+        .district-header.active {
+            background-color: #0D47A1;
+        }
+
+        .district-content {
+            background-color: #f8f9fa;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            border-radius: 0 0 6px 6px;
+        }
+
+        .district-content.active {
+            padding: 15px;
+            overflow-y: auto;
+            min-height: 400px;
+        }
+
+        /* Category Accordion Styles */
+        .category-accordion {
+            margin-bottom: 8px;
+        }
+
+        .category-header {
+            background-color: #FF9800;
+            color: white;
+            padding: 10px 12px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            font-weight: 600;
+            border-radius: 5px;
+            margin-bottom: 5px;
+            font-size: 0.9rem;
+            transition: background-color 0.2s;
+        }
+
+        .category-header:hover {
+            background-color: #F57C00;
+        }
+
+        .category-header.active {
+            background-color: #E65100;
+        }
+
+        .category-content {
+            background-color: #f0f0f0;
+            padding: 0;
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease, padding 0.3s ease;
+            border-radius: 0 0 5px 5px;
+        }
+
+        .category-content.active {
+            padding: 10px;
+            overflow-y: auto;
+            min-height: 250px;
+        }
+
+        .school-item {
+            background-color: white;
+            border: 1px solid #e0e0e0;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .school-item:hover {
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            border-color: #2196F3;
+        }
+
+        .school-item.active {
+            border-color: #FFEB3B;
+            background-color: #FFFDE7;
+        }
+
+        .school-name {
+            font-weight: 600;
+            color: #2c3e50;
+            margin-bottom: 8px;
+            font-size: 1rem;
+        }
+
+        .school-details {
+            font-size: 0.85rem;
+            color: #666;
+            line-height: 1.5;
+        }
+
+        .school-detail-item {
+            margin-bottom: 4px;
+            display: flex;
+            align-items: flex-start;
+        }
+
+        .school-detail-item i {
+            color: #4CAF50;
+            margin-right: 6px;
+            margin-top: 2px;
+            width: 14px;
+        }
+
+        .control-group {
+            margin-bottom: 15px;
+        }
+
+        .control-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+        }
+
+        .btn {
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            border-radius: 6px;
+            cursor: pointer;
+            font-weight: 600;
+            width: 100%;
+            transition: background-color 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            background-color: #388E3C;
+        }
+
+        .btn.active {
+            background-color: #1B5E20;
+        }
+
+        .btn-danger {
+            background-color: #e74c3c;
+        }
+
+        .btn-danger:hover {
+            background-color: #c0392b;
+        }
+
+        .btn-success {
+            background-color: #27ae60;
+        }
+
+        .btn-success:hover {
+            background-color: #219653;
+        }
+
+        .info-box {
+            background-color: #f8f9fa;
+            border-radius: 6px;
+            padding: 15px;
+            margin-bottom: 15px;
+            border-left: 4px solid #4CAF50;
+            font-size: 0.9rem;
+        }
+
+        .info-box h4 {
+            margin-bottom: 8px;
+            color: #2c3e50;
+        }
+
+        /* Search Box */
+        .search-box {
+            margin-bottom: 15px;
+        }
+
+        .search-input {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 1rem;
+            transition: border-color 0.2s;
+        }
+
+        .search-input:focus {
+            outline: none;
+            border-color: #4CAF50;
+        }
+
+        /* Map Styles */
+        .map-container {
+            flex: 1;
+            position: relative;
+        }
+
+        #map {
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+
+        /* Footer Styles */
+        .footer {
+            background-color: #2E7D32;
+            color: white;
+            padding: 6px 20px;
+            text-align: center;
+            font-size: 0.85rem;
+            border-top: 1px solid #4CAF50;
+            z-index: 1000;
+        }
+
+        .footer-content {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .footer-links {
+            display: flex;
+            gap: 15px;
+        }
+
+        .footer-links a {
+            color: #ecf0f1;
+            text-decoration: none;
+            transition: color 0.2s;
+        }
+
+        .footer-links a:hover {
+            color: #FFEB3B;
+        }
+
+        /* Mobile Responsiveness */
+        @media (max-width: 768px) {
+            .container {
+                flex-direction: column;
+            }
+
+            .accordion-panel {
+                width: 100%;
+                height: 40vh;
+                border-right: none;
+                border-bottom: 1px solid #ddd;
+            }
+
+            .header h1 {
+                font-size: 1.3rem;
+            }
+
+            .header p {
+                font-size: 0.85rem;
+            }
+
+            .accordion-header {
+                padding: 12px 15px;
+                font-size: 0.95rem;
+            }
+
+            .btn {
+                padding: 10px 15px;
+                font-size: 0.95rem;
+            }
+
+            .footer-content {
+                flex-direction: column;
+                gap: 8px;
+                text-align: center;
+            }
+
+            .footer-links {
+                justify-content: center;
+            }
+        }
+
+        /* For very small screens like iPhone SE */
+        @media (max-width: 375px) {
+            .header {
+                padding: 12px 15px;
+            }
+
+            .header h1 {
+                font-size: 1.2rem;
+            }
+
+            .header p {
+                font-size: 0.8rem;
+            }
+
+            .accordion {
+                padding: 10px;
+            }
+
+            .accordion-header {
+                padding: 10px 12px;
+                font-size: 0.9rem;
+            }
+
+            .accordion-content.active {
+                padding: 15px;
+            }
+
+            .btn {
+                padding: 8px 12px;
+                font-size: 0.9rem;
+            }
+
+            .footer {
+                padding: 10px 15px;
+                font-size: 0.8rem;
+            }
+        }
+
+        /* Stats Display */
+        .stats {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            padding: 10px 0;
+            border-top: 1px dashed #ddd;
+            font-size: 0.9rem;
+        }
+
+        .stat-item {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-weight: bold;
+            color: #2E7D32;
+            font-size: 1.2rem;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.8rem;
+        }
+
+        /* Toggle panel button for mobile */
+        .panel-toggle {
+            display: none;
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: white;
+            border: none;
+            border-radius: 4px;
+            padding: 8px 12px;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.2);
+            z-index: 1000;
+            cursor: pointer;
+        }
+
+        @media (max-width: 768px) {
+            .panel-toggle {
+                display: block;
+            }
+
+            .accordion-panel.collapsed {
+                transform: translateY(-100%);
+                height: 0;
+                overflow: hidden;
+            }
+        }
+
+        /* Legend */
+        .legend {
+            background-color: white;
+            padding: 10px;
+            border-radius: 5px;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+            margin-top: 10px;
+        }
+
+        .legend-item {
+            display: flex;
+            align-items: center;
+            margin-bottom: 8px;
+            font-size: 0.85rem;
+        }
+
+        .legend-color {
+            width: 20px;
+            height: 20px;
+            margin-right: 8px;
+            border-radius: 3px;
+        }
+
+        /* Loading indicator */
+        .loading {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            z-index: 1000;
+            text-align: center;
+        }
+
+        .spinner {
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #4CAF50;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            animation: spin 1s linear infinite;
+            margin: 0 auto 15px;
+        }
+
+        @keyframes spin {
+            0% {
+                transform: rotate(0deg);
+            }
+
+            100% {
+                transform: rotate(360deg);
+            }
+        }
+
+        /* Coordinates display */
+        .coordinates {
+            position: absolute;
+            bottom: 20px;
+            right: 20px;
+            background-color: rgba(255, 255, 255, 0.9);
+            padding: 10px 15px;
+            border-radius: 5px;
+            font-size: 0.85rem;
+            z-index: 500;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        /* District Counter */
+        .district-counter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 12px;
+            padding: 2px 10px;
+            font-size: 0.8rem;
+            margin-left: 8px;
+        }
+
+        .category-counter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: rgba(255, 255, 255, 0.2);
+            color: white;
+            border-radius: 10px;
+            padding: 1px 8px;
+            font-size: 0.75rem;
+            margin-left: 8px;
+        }
+
+        .school-counter {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background-color: #2196F3;
+            color: white;
+            border-radius: 8px;
+            padding: 1px 6px;
+            font-size: 0.7rem;
+            margin-left: 8px;
+        }
+
+        /* School Details Modal */
+        .school-detail-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.7);
+            z-index: 2000;
+            overflow-y: auto;
+        }
+
+        .modal-content {
+            background-color: white;
+            margin: 50px auto;
+            padding: 30px;
+            border-radius: 10px;
+            width: 90%;
+            max-width: 800px;
+            max-height: 80vh;
+            overflow-y: auto;
+            position: relative;
+        }
+
+        .close-modal {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #666;
+        }
+
+        .close-modal:hover {
+            color: #000;
+        }
+
+        .modal-header {
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4CAF50;
+        }
+
+        .modal-title {
+            font-size: 1.5rem;
+            color: #2E7D32;
+            font-weight: bold;
+        }
+
+        .modal-section {
+            margin-bottom: 20px;
+            padding: 15px;
+            background-color: #f9f9f9;
+            border-radius: 8px;
+        }
+
+        .modal-section h3 {
+            color: #2196F3;
+            margin-bottom: 10px;
+            font-size: 1.1rem;
+        }
+
+        .modal-row {
+            display: flex;
+            margin-bottom: 8px;
+            padding-bottom: 8px;
+            border-bottom: 1px dashed #ddd;
+        }
+
+        .modal-label {
+            width: 200px;
+            font-weight: 600;
+            color: #555;
+            flex-shrink: 0;
+        }
+
+        .modal-value {
+            flex: 1;
+            color: #333;
+        }
+
+        .modal-value a {
+            color: #2196F3;
+            text-decoration: none;
+        }
+
+        .modal-value a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1><i class="fas fa-school"></i> 幼稚園及幼稚園暨幼兒中心查詢系統</h1>
+        <p>查詢全港各區幼稚園及幼稚園暨幼兒中心資訊，包括地址、課程、學費、師資等</p>
+    </div>
+
+    <div class="container">
+        <button class="panel-toggle" id="panelToggle" style="display:none">
+            <i class="fas fa-bars"></i> 控制面板
+        </button>
+
+        <div class="accordion-panel" id="accordionPanel">
+            <div class="accordion">
+                <!-- Kindergartens List -->
+                <div class="accordion-item">
+                    <div class="accordion-header active" id="headerCenters">
+                        <span><i class="fas fa-list"></i> 幼稚園列表</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content active" id="contentCenters">
+                        <div class="search-box">
+                            <input type="text" id="searchInput" class="search-input" placeholder="搜尋幼稚園名稱、地址或課程類型...">
+                        </div>
+
+                        <div class="info-box">
+                            <h4><i class="fas fa-info-circle"></i> 使用說明</h4>
+                            <p>1. 點擊地區展開查看該區的幼稚園</p>
+                            <p>2. 點擊幼稚園類別查看詳細分類</p>
+                            <p>3. 點擊幼稚園名稱查看詳細資訊</p>
+                            <p>4. 點擊地圖上的標記查看更多詳情</p>
+                        </div>
+
+                        <div class="stats">
+                            <div class="stat-item">
+                                <div class="stat-value" id="totalSchools">0</div>
+                                <div class="stat-label">幼稚園總數</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="totalDistricts">0</div>
+                                <div class="stat-label">地區</div>
+                            </div>
+                            <div class="stat-item">
+                                <div class="stat-value" id="visibleSchools">0</div>
+                                <div class="stat-label">顯示中</div>
+                            </div>
+                        </div>
+
+                        <div id="kindergartensList">
+                            <!-- Kindergartens will be loaded here -->
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Map Settings -->
+                <div class="accordion-item">
+                    <div class="accordion-header" id="headerSettings">
+                        <span><i class="fas fa-cog"></i> 地圖設定</span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="accordion-content" id="contentSettings">
+                        <div class="control-group">
+                            <label><i class="fas fa-map"></i> 底圖樣式</label>
+                            <select id="baseMapSelect" class="btn" style="padding: 10px;">
+                                <option value="OpenStreetMap">OpenStreetMap</option>
+                                <option value="地形圖">地形圖</option>
+                                <option value="衛星圖像">衛星圖像</option>
+                            </select>
+                        </div>
+
+                        <div class="control-group">
+                            <label><i class="fas fa-search"></i> 縮放級別</label>
+                            <div style="display: flex; align-items: center; gap: 10px;">
+                                <button class="btn" id="zoomInBtn" style="width: auto; flex: 1;">
+                                    <i class="fas fa-search-plus"></i> 放大
+                                </button>
+                                <button class="btn" id="zoomOutBtn" style="width: auto; flex: 1;">
+                                    <i class="fas fa-search-minus"></i> 縮小
+                                </button>
+                            </div>
+                        </div>
+
+                        <div class="control-group">
+                            <label><i class="fas fa-location-arrow"></i> 重置視圖</label>
+                            <button class="btn" id="resetViewBtn">
+                                <i class="fas fa-globe-asia"></i> 重置至香港全境
+                            </button>
+                        </div>
+
+                        <div class="legend">
+                            <label><i class="fas fa-layer-group"></i> 圖例</label>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #FF5722;"></div>
+                                <span>非牟利幼稚園</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #9C27B0;"></div>
+                                <span>私立幼稚園</span>
+                            </div>
+                            <div class="legend-item">
+                                <div class="legend-color" style="background-color: #2196F3;"></div>
+                                <span>國際幼稚園</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <div class="map-container">
+            <div id="map"></div>
+            <div class="loading" id="loadingIndicator">
+                <div class="spinner"></div>
+                <p>正在載入幼稚園數據...</p>
+            </div>
+        </div>
+    </div>
+
+    <!-- School Details Modal -->
+    <div class="school-detail-modal" id="schoolModal">
+        <div class="modal-content">
+            <span class="close-modal" id="closeModal">&times;</span>
+            <div class="modal-header">
+                <h2 class="modal-title" id="modalSchoolName"></h2>
+                <div id="modalSchoolInfo"></div>
+            </div>
+            
+            <div class="modal-section">
+                <h3><i class="fas fa-info-circle"></i> 基本資訊</h3>
+                <div id="modalBasicInfo"></div>
+            </div>
+            
+            <div class="modal-section">
+                <h3><i class="fas fa-graduation-cap"></i> 課程與教學</h3>
+                <div id="modalCurriculumInfo"></div>
+            </div>
+            
+            <div class="modal-section">
+                <h3><i class="fas fa-user-friends"></i> 師資與學生</h3>
+                <div id="modalStaffStudentInfo"></div>
+            </div>
+            
+            <div class="modal-section">
+                <h3><i class="fas fa-money-bill-wave"></i> 學費與費用</h3>
+                <div id="modalFeesInfo"></div>
+            </div>
+            
+            <div class="modal-section">
+                <h3><i class="fas fa-hands-helping"></i> 支援服務</h3>
+                <div id="modalSupportInfo"></div>
+            </div>
+            
+            <div class="modal-section">
+                <h3><i class="fas fa-link"></i> 相關連結</h3>
+                <div id="modalLinksInfo"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-content">
+            <div class="footer-copyright">
+                &copy; 2024 幼稚園及幼稚園暨幼兒中心查詢系統<br />數據由教育局提供
+            </div>
+        </div>
+    </footer>
+
+    <!-- Leaflet JS -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+
+    <script>
+        // Initialize variables
+        let map;
+        let schoolsLayer;
+        let selectedSchool = null;
+        let allSchools = [];
+        let groupedByDistrict = {};
+
+        // Add base layers
+        const osmLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+            attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors'
+        });
+
+        const topoLayer = L.tileLayer('https://{s}.tile.opentopomap.org/{z}/{x}/{y}.png', {
+            attribution: 'Map data: &copy; <a href="https://www.openstreetmap.org/copyright">OSM</a> contributors, <a href="http://viewfinderpanoramas.org">SRTM</a> | Map style: &copy; <a href="https://opentopomap.org">OpenTopoMap</a> (<a href="https://creativecommons.org/licenses/by-sa/3.0/">CC-BY-SA</a>)'
+        });
+
+        const satelliteLayer = L.tileLayer('https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}', {
+            attribution: 'Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community'
+        });
+
+        // Add layer control
+        const baseLayers = {
+            "OpenStreetMap": osmLayer,
+            "地形圖": topoLayer,
+            "衛星圖像": satelliteLayer
+        };
+        var currentTileLayer = baseLayers["OpenStreetMap"];
+
+        // Initialize map when DOM is loaded
+        document.addEventListener('DOMContentLoaded', function () {
+            initMap();
+            setupAccordion();
+            setupEventListeners();
+            loadKindergartensData();
+
+            // Handle mobile panel toggle
+            const panelToggle = document.getElementById('panelToggle');
+            const accordionPanel = document.getElementById('accordionPanel');
+
+            panelToggle.addEventListener('click', function () {
+                accordionPanel.classList.toggle('collapsed');
+                panelToggle.innerHTML = accordionPanel.classList.contains('collapsed')
+                    ? '<i class="fas fa-bars"></i> 顯示控制面板'
+                    : '<i class="fas fa-bars"></i> 隱藏控制面板';
+            });
+
+            // Handle modal close
+            document.getElementById('closeModal').addEventListener('click', function() {
+                document.getElementById('schoolModal').style.display = 'none';
+            });
+
+            // Close modal when clicking outside
+            window.addEventListener('click', function(event) {
+                const modal = document.getElementById('schoolModal');
+                if (event.target === modal) {
+                    modal.style.display = 'none';
+                }
+            });
+        });
+
+        // Initialize the map
+        function initMap() {
+            // Set initial view to Hong Kong
+            map = L.map('map', { zoomControl: false }).setView([22.3193, 114.1694], 11);
+
+            // Add default layer
+            currentTileLayer.addTo(map);
+        }
+
+        // Setup accordion functionality
+        function setupAccordion() {
+            const accordionHeaders = document.querySelectorAll('.accordion-header');
+
+            accordionHeaders.forEach(header => {
+                header.addEventListener('click', function (e) {
+                    const content = this.nextElementSibling;
+                    const isActive = this.classList.contains('active');
+
+                    // Close all accordion items
+                    accordionHeaders.forEach(h => {
+                        h.classList.remove('active');
+                        h.querySelector('.fa-chevron-down').style.transform = 'rotate(0deg)';
+                    });
+
+                    document.querySelectorAll('.accordion-content').forEach(c => {
+                        c.classList.remove('active');
+                    });
+
+                    // Open clicked item if it was not active
+                    if (!isActive) {
+                        this.classList.add('active');
+                        content.classList.add('active');
+                        this.querySelector('.fa-chevron-down').style.transform = 'rotate(180deg)';
+                    }
+
+                    map.invalidateSize();
+                });
+            });
+        }
+
+        // Setup button event listeners
+        function setupEventListeners() {
+            // Map controls
+            document.getElementById('zoomInBtn').addEventListener('click', function () {
+                map.zoomIn();
+            });
+
+            document.getElementById('zoomOutBtn').addEventListener('click', function () {
+                map.zoomOut();
+            });
+
+            document.getElementById('resetViewBtn').addEventListener('click', function () {
+                map.setView([22.3193, 114.1694], 11);
+            });
+
+            // Base map selector
+            document.getElementById('baseMapSelect').addEventListener('change', function (e) {
+                // Remove current layer
+                map.removeLayer(currentTileLayer);
+
+                // Add new layer
+                currentTileLayer = baseLayers[e.target.value];
+                currentTileLayer.addTo(map);
+            });
+
+            // Search input
+            document.getElementById('searchInput').addEventListener('input', function (e) {
+                filterSchools(e.target.value);
+            });
+        }
+
+        // Load Kindergartens data from the WFS service
+        async function loadKindergartensData() {
+            const loadingIndicator = document.getElementById('loadingIndicator');
+            loadingIndicator.style.display = 'block';
+
+            try {
+                // Using the specified API endpoint for kindergartens
+                const apiUrl = 'https://portal.csdi.gov.hk/server/services/common/edb_rcd_1633401226600_10690/MapServer/WFSServer?service=wfs&request=GetFeature&typenames=GEO_PPKCCC_1&outputFormat=geojson';
+
+                const response = await fetch(apiUrl);
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! Status: ${response.status}`);
+                }
+
+                const data = await response.json();
+                allSchools = data.features || [];
+
+                // Group schools by district -> category -> curriculum/student type
+                groupedByDistrict = {};
+                allSchools.forEach(school => {
+                    const props = school.properties;
+                    const district = props.district_tc || '未分類';
+                    
+                    if (!groupedByDistrict[district]) {
+                        groupedByDistrict[district] = {};
+                    }
+                    
+                    const category = props.school_category_tc || '未分類';
+                    if (!groupedByDistrict[district][category]) {
+                        groupedByDistrict[district][category] = {};
+                    }
+                    
+                    // Create a combined key for curriculum and student type
+                    const typeKey = `${props.curriculum_type_tc || '未分類'}/${props.student_category_tc || '未分類'}`;
+                    if (!groupedByDistrict[district][category][typeKey]) {
+                        groupedByDistrict[district][category][typeKey] = [];
+                    }
+                    
+                    groupedByDistrict[district][category][typeKey].push(school);
+                });
+
+                // Update stats
+                updateStats();
+
+                // Render accordion list
+                renderKindergartensList();
+
+                // Create markers on map
+                createMapMarkers();
+
+            } catch (error) {
+                console.error('Error loading Kindergartens data:', error);
+                alert('無法載入幼稚園數據，請檢查網絡連接或稍後再試。');
+            } finally {
+                loadingIndicator.style.display = 'none';
+            }
+        }
+
+        // Update statistics display
+        function updateStats() {
+            const totalSchools = allSchools.length;
+            const totalDistricts = Object.keys(groupedByDistrict).length;
+
+            document.getElementById('totalSchools').textContent = totalSchools;
+            document.getElementById('totalDistricts').textContent = totalDistricts;
+            document.getElementById('visibleSchools').textContent = totalSchools;
+        }
+
+        // Render kindergartens list in accordion
+        function renderKindergartensList() {
+            const container = document.getElementById('kindergartensList');
+            container.innerHTML = '';
+
+            // Sort districts alphabetically
+            const sortedDistricts = Object.keys(groupedByDistrict).sort();
+
+            sortedDistricts.forEach(district => {
+                const categories = groupedByDistrict[district];
+                let totalSchoolsInDistrict = 0;
+                
+                // Calculate total schools in this district
+                Object.values(categories).forEach(typeGroups => {
+                    Object.values(typeGroups).forEach(schools => {
+                        totalSchoolsInDistrict += schools.length;
+                    });
+                });
+
+                // Create district accordion item
+                const districtAccordion = document.createElement('div');
+                districtAccordion.className = 'district-accordion';
+                districtAccordion.innerHTML = `
+                    <div class="district-header">
+                        <span>
+                            ${district}
+                            <span class="district-counter">${totalSchoolsInDistrict}</span>
+                        </span>
+                        <i class="fas fa-chevron-down"></i>
+                    </div>
+                    <div class="district-content"></div>
+                `;
+
+                container.appendChild(districtAccordion);
+
+                // Add click event to district header
+                const districtHeader = districtAccordion.querySelector('.district-header');
+                const districtContent = districtAccordion.querySelector('.district-content');
+
+                districtHeader.addEventListener('click', function () {
+                    const isActive = this.classList.contains('active');
+
+                    // Toggle active class
+                    this.classList.toggle('active');
+                    districtContent.classList.toggle('active');
+
+                    // Rotate icon
+                    const icon = this.querySelector('.fa-chevron-down');
+                    icon.style.transform = isActive ? 'rotate(0deg)' : 'rotate(180deg)';
+                });
+
+                // Sort categories alphabetically
+                const sortedCategories = Object.keys(categories).sort();
+
+                sortedCategories.forEach(category => {
+                    const typeGroups = categories[category];
+                    let totalSchoolsInCategory = 0;
+                    
+                    // Calculate total schools in this category
+                    Object.values(typeGroups).forEach(schools => {
+                        totalSchoolsInCategory += schools.length;
+                    });
+
+                    // Create category accordion
+                    const categoryAccordion = document.createElement('div');
+                    categoryAccordion.className = 'category-accordion';
+                    categoryAccordion.innerHTML = `
+                        <div class="category-header">
+                            <span>
+                                ${category}
+                                <span class="category-counter">${totalSchoolsInCategory}</span>
+                            </span>
+                            <i class="fas fa-chevron-down"></i>
+                        </div>
+                        <div class="category-content"></div>
+                    `;
+
+                    districtContent.appendChild(categoryAccordion);
+
+                    // Add click event to category header
+                    const categoryHeader = categoryAccordion.querySelector('.category-header');
+                    const categoryContent = categoryAccordion.querySelector('.category-content');
+
+                    categoryHeader.addEventListener('click', function () {
+                        const isActive = this.classList.contains('active');
+
+                        // Toggle active class
+                        this.classList.toggle('active');
+                        categoryContent.classList.toggle('active');
+
+                        // Rotate icon
+                        const icon = this.querySelector('.fa-chevron-down');
+                        icon.style.transform = isActive ? 'rotate(0deg)' : 'rotate(180deg)';
+                    });
+
+                    // Sort type groups alphabetically
+                    const sortedTypes = Object.keys(typeGroups).sort();
+
+                    sortedTypes.forEach(type => {
+                        const schools = typeGroups[type];
+                        
+                        // Add school items
+                        const schoolsContainer = document.createElement('div');
+                        schoolsContainer.innerHTML = `<div style="font-size: 0.8rem; color: #666; margin-bottom: 5px; padding-left: 5px;">${type}</div>`;
+                        
+                        schools.forEach(school => {
+                            const schoolItem = createSchoolItem(school);
+                            schoolsContainer.appendChild(schoolItem);
+                        });
+
+                        categoryContent.appendChild(schoolsContainer);
+                    });
+                });
+            });
+
+            // Setup school item click events
+            setupSchoolItemEvents();
+        }
+
+        // Create a school item element
+        function createSchoolItem(school) {
+            const props = school.properties;
+            const schoolItem = document.createElement('div');
+            schoolItem.className = 'school-item';
+            schoolItem.dataset.objectId = props.OBJECTID;
+
+            // Truncate long address for display
+            const displayAddress = props.address_tc ? 
+                (props.address_tc.length > 40 ? props.address_tc.substring(0, 40) + '...' : props.address_tc) 
+                : '未提供地址';
+
+            schoolItem.innerHTML = `
+                <div class="school-name">${props.school_name_tc || '未知名稱'}</div>
+                <div class="school-details">
+                    <div class="school-detail-item">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>${displayAddress}</span>
+                    </div>
+                    <div class="school-detail-item">
+                        <i class="fas fa-phone"></i>
+                        <span>${props.tel || '未提供電話'}</span>
+                    </div>
+                    <div class="school-detail-item">
+                        <i class="fas fa-user-graduate"></i>
+                        <span>${props.curriculum_type_tc || '未分類'} / ${props.student_category_tc || '未分類'}</span>
+                    </div>
+                </div>
+            `;
+
+            return schoolItem;
+        }
+
+        // Setup school item click events
+        function setupSchoolItemEvents() {
+            document.querySelectorAll('.school-item').forEach(item => {
+                item.addEventListener('click', function () {
+                    // Remove active class from all school items
+                    document.querySelectorAll('.school-item').forEach(i => {
+                        i.classList.remove('active');
+                    });
+
+                    // Add active class to clicked item
+                    this.classList.add('active');
+
+                    // Find and highlight the corresponding marker
+                    const objectId = parseInt(this.dataset.objectId);
+                    const school = allSchools.find(c => c.properties.OBJECTID === objectId);
+
+                    if (school) {
+                        selectSchool(school);
+                    }
+                });
+            });
+        }
+
+        // Create markers on the map
+        function createMapMarkers() {
+            if (schoolsLayer) {
+                map.removeLayer(schoolsLayer);
+            }
+
+            schoolsLayer = L.layerGroup().addTo(map);
+
+            allSchools.forEach(school => {
+                const props = school.properties;
+                const coords = school.geometry.coordinates;
+                
+                if (!coords || coords.length < 2) return;
+
+                // Determine marker color based on school category
+                let markerColor;
+                if (props.school_category_tc === '非牟利') {
+                    markerColor = '#FF5722'; // Orange
+                } else if (props.school_category_tc === '私立') {
+                    markerColor = '#9C27B0'; // Purple
+                } else {
+                    markerColor = '#2196F3'; // Blue
+                }
+
+                // Create marker
+                const marker = L.circleMarker([coords[1], coords[0]], {
+                    radius: 10,
+                    fillColor: markerColor,
+                    color: '#ffffff',
+                    weight: 2,
+                    opacity: 1,
+                    fillOpacity: 0.8
+                });
+
+                // Create popup content
+                const popupContent = `
+                    <div style="font-weight: bold; margin-bottom: 5px; color: #2c3e50; font-size: 1.1em">${props.school_name_tc || '未知名稱'}</div>
+                    <div><strong>地區:</strong> ${props.district_tc || '未提供'}</div>
+                    <div><strong>類別:</strong> ${props.school_category_tc || '未提供'}</div>
+                    <div><strong>課程:</strong> ${props.curriculum_type_tc || '未提供'}</div>
+                    <div><strong>學生類別:</strong> ${props.student_category_tc || '未提供'}</div>
+                    <div><strong>地址:</strong> ${props.address_tc || '未提供'}</div>
+                    <div><strong>電話:</strong> ${props.tel || '未提供'}</div>
+                    <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                        <button onclick="openSchoolDetails(${props.OBJECTID})" style="background-color: #4CAF50; color: white; border: none; padding: 5px 10px; border-radius: 3px; cursor: pointer;">
+                            查看更多詳情
+                        </button>
+                    </div>
+                `;
+
+                marker.bindPopup(popupContent);
+
+                // Add click event
+                marker.on('click', function () {
+                    selectSchool(school);
+
+                    // Find and highlight the corresponding list item
+                    document.querySelectorAll('.school-item').forEach(item => {
+                        item.classList.remove('active');
+                        if (parseInt(item.dataset.objectId) === props.OBJECTID) {
+                            item.classList.add('active');
+                            item.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                        }
+                    });
+                });
+
+                schoolsLayer.addLayer(marker);
+            });
+        }
+
+        // Select and highlight a school
+        function selectSchool(school) {
+            const props = school.properties;
+            const coords = school.geometry.coordinates;
+            
+            if (!coords || coords.length < 2) return;
+
+            // Clear previous selection
+            if (selectedSchool) {
+                map.removeLayer(selectedSchool);
+                selectedSchool = null;
+            }
+
+            // Create highlighted marker
+            selectedSchool = L.circleMarker([coords[1], coords[0]], {
+                radius: 14,
+                fillColor: '#FFEB3B',
+                color: '#FBC02D',
+                weight: 3,
+                opacity: 1,
+                fillOpacity: 0.9
+            }).addTo(map);
+
+            // Pan to the selected school
+            map.setView([coords[1], coords[0]], 14);
+
+            // Open popup
+            selectedSchool.bindPopup(`
+                <div style="font-weight: bold; margin-bottom: 5px; color: #2c3e50; font-size: 1.1em">${props.school_name_tc || '未知名稱'}</div>
+                <div><strong>地區:</strong> ${props.district_tc || '未提供'}</div>
+                <div><strong>類別:</strong> ${props.school_category_tc || '未提供'}</div>
+                <div><strong>課程:</strong> ${props.curriculum_type_tc || '未提供'}</div>
+                <div><strong>學生類別:</strong> ${props.student_category_tc || '未提供'}</div>
+                <div><strong>地址:</strong> ${props.address_tc || '未提供'}</div>
+                <div><strong>電話:</strong> <a href="tel:${props.tel}">${props.tel || '未提供'}</a></div>
+                <div style="margin-top: 10px; padding-top: 10px; border-top: 1px solid #eee;">
+                    <button onclick="openSchoolDetails(${props.OBJECTID})" style="background-color: #4CAF50; color: white; border: none; padding: 8px 15px; border-radius: 5px; cursor: pointer; width: 100%;">
+                        <i class="fas fa-info-circle"></i> 查看完整詳情
+                    </button>
+                </div>
+            `).openPopup();
+
+            // Show notification
+            showNotification(`已選取: ${props.school_name_tc}`);
+        }
+
+        // Open school details modal
+        function openSchoolDetails(objectId) {
+            const school = allSchools.find(c => c.properties.OBJECTID === objectId);
+            if (!school) return;
+
+            const props = school.properties;
+            const modal = document.getElementById('schoolModal');
+            
+            // Set modal title
+            document.getElementById('modalSchoolName').textContent = props.school_name_tc || '未知名稱';
+            
+            // Set basic school info
+            let schoolInfo = '';
+            if (props.school_name_en) schoolInfo += `<div>${props.school_name_en}</div>`;
+            schoolInfo += `<div><strong>學校編號:</strong> ${props.school_no || '未提供'}</div>`;
+            schoolInfo += `<div><strong>創校年份:</strong> ${props.school_founding_year || '未提供'}</div>`;
+            document.getElementById('modalSchoolInfo').innerHTML = schoolInfo;
+            
+            // Set basic information
+            let basicInfo = '';
+            basicInfo += `<div class="modal-row"><div class="modal-label">地區</div><div class="modal-value">${props.district_tc || '未提供'}</div></div>`;
+            basicInfo += `<div class="modal-row"><div class="modal-label">學校類別</div><div class="modal-value">${props.school_category_tc || '未提供'}</div></div>`;
+            basicInfo += `<div class="modal-row"><div class="modal-label">學生類別</div><div class="modal-value">${props.student_category_tc || '未提供'}</div></div>`;
+            basicInfo += `<div class="modal-row"><div class="modal-label">地址</div><div class="modal-value">${props.address_tc || '未提供'}</div></div>`;
+            basicInfo += `<div class="modal-row"><div class="modal-label">電話</div><div class="modal-value">${props.tel || '未提供'}</div></div>`;
+            basicInfo += `<div class="modal-row"><div class="modal-label">傳真</div><div class="modal-value">${props.fax || '未提供'}</div></div>`;
+            basicInfo += `<div class="modal-row"><div class="modal-label">校監</div><div class="modal-value">${props.name_of_school_supervisor_tc || '未提供'} (${props.title_of_school_supervisor_tc || ''})</div></div>`;
+            basicInfo += `<div class="modal-row"><div class="modal-label">校長</div><div class="modal-value">${props.name_of_school_principal_tc || '未提供'} (${props.title_of_school_principal_tc || ''})</div></div>`;
+            document.getElementById('modalBasicInfo').innerHTML = basicInfo;
+            
+            // Set curriculum information
+            let curriculumInfo = '';
+            curriculumInfo += `<div class="modal-row"><div class="modal-label">課程類型</div><div class="modal-value">${props.curriculum_type_tc || '未提供'}</div></div>`;
+            curriculumInfo += `<div class="modal-row"><div class="modal-label">參加幼稚園教育計劃</div><div class="modal-value">${props.joining_kg_edu_scheme_tc || '未提供'}</div></div>`;
+            if (props.curriculum_planning_tc) {
+                curriculumInfo += `<div class="modal-row"><div class="modal-label">課程規劃</div><div class="modal-value">${props.curriculum_planning_tc.substring(0, 300)}...</div></div>`;
+            }
+            if (props.learning_or_teaching_approach_and_activities_tc) {
+                curriculumInfo += `<div class="modal-row"><div class="modal-label">教學方式</div><div class="modal-value">${props.learning_or_teaching_approach_and_activities_tc.substring(0, 300)}...</div></div>`;
+            }
+            curriculumInfo += `<div class="modal-row"><div class="modal-label">幼兒班不寫字</div><div class="modal-value">${props.nursery_classes_not_writing === 'Y' ? '是' : '否'}</div></div>`;
+            document.getElementById('modalCurriculumInfo').innerHTML = curriculumInfo;
+            
+            // Set staff and student information
+            let staffStudentInfo = '';
+            staffStudentInfo += `<div class="modal-row"><div class="modal-label">註冊課室數目</div><div class="modal-value">${props.no_of_registered_classrooms_tc || '未提供'}</div></div>`;
+            staffStudentInfo += `<div class="modal-row"><div class="modal-label">上午班師生比例</div><div class="modal-value">${props.teacher_to_pupil_ratio_in_morning_session || '未提供'}</div></div>`;
+            staffStudentInfo += `<div class="modal-row"><div class="modal-label">下午班師生比例</div><div class="modal-value">${props.teacher_to_pupil_ratio_in_afternoon_session || '未提供'}</div></div>`;
+            staffStudentInfo += `<div class="modal-row"><div class="modal-label">校長及教學人員總數</div><div class="modal-value">${props.total_no_of_principal_and_teaching_staff || '未提供'}</div></div>`;
+            staffStudentInfo += `<div class="modal-row"><div class="modal-label">持有學位人員</div><div class="modal-value">${props.no_of_principal_and_teaching_staff_with_degree || '0'}</div></div>`;
+            staffStudentInfo += `<div class="modal-row"><div class="modal-label">教學年資 > 7年</div><div class="modal-value">${props.working_exp_of_principal_and_teaching_staff_above_7_yrs || '0%'}</div></div>`;
+            document.getElementById('modalStaffStudentInfo').innerHTML = staffStudentInfo;
+            
+            // Set fees information
+            let feesInfo = '';
+            feesInfo += `<div class="modal-row"><div class="modal-label">夏季校服</div><div class="modal-value">${`${props.summer_uniform_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">冬季校服</div><div class="modal-value">${`${props.winter_uniform_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">書包</div><div class="modal-value">${`${props.school_bag_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">茶點</div><div class="modal-value">${`${props.tea_and_snacks_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">教科書</div><div class="modal-value">${`${props.textbooks_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">作業簿</div><div class="modal-value">${`${props.exercise_books_or_workbooks_tc}` || '未提供'}</div></div>`;
+            feesInfo += `<div class="modal-row"><div class="modal-label">文具</div><div class="modal-value">${`${props.stationery_tc}` || '未提供'}</div></div>`;
+            if (props.fees_certificate) {
+                feesInfo += `<div class="modal-row"><div class="modal-label">學費證明書</div><div class="modal-value"><a href="${props.fees_certificate}" target="_blank">查看學費證明書</a></div></div>`;
+            }
+            document.getElementById('modalFeesInfo').innerHTML = feesInfo;
+            
+            // Set support services information
+            let supportInfo = '';
+            if (props.support_to_non_chinese_speaking_ncs_students_tc) {
+                supportInfo += `<div class="modal-row"><div class="modal-label">支援非華語學生</div><div class="modal-value">${props.support_to_non_chinese_speaking_ncs_students_tc.substring(0, 200)}...</div></div>`;
+            }
+            if (props.support_to_students_with_special_needs_tc) {
+                supportInfo += `<div class="modal-row"><div class="modal-label">支援特殊需要學生</div><div class="modal-value">${props.support_to_students_with_special_needs_tc}</div></div>`;
+            }
+            supportInfo += `<div class="modal-row"><div class="modal-label">家長教師會</div><div class="modal-value">${props.parent_teacher_association_tc || '未提供'}</div></div>`;
+            document.getElementById('modalSupportInfo').innerHTML = supportInfo;
+            
+            // Set links information
+            let linksInfo = '';
+            if (props.school_website) {
+                linksInfo += `<div class="modal-row"><div class="modal-label">學校網站</div><div class="modal-value"><a href="${props.school_website}" target="_blank">${props.school_website}</a></div></div>`;
+            }
+            if (props.quality_review_result_and_report_chi_tc) {
+                const qrLink = props.quality_review_result_and_report_chi_tc.split(' ')[1];
+                if (qrLink) {
+                    linksInfo += `<div class="modal-row"><div class="modal-label">質素評核報告(中文)</div><div class="modal-value"><a href="${qrLink}" target="_blank">查看報告</a></div></div>`;
+                }
+            }
+            document.getElementById('modalLinksInfo').innerHTML = linksInfo;
+            
+            // Show the modal
+            modal.style.display = 'block';
+        }
+
+        // Filter schools based on search input
+        function filterSchools(searchTerm) {
+            const searchLower = searchTerm.toLowerCase().trim();
+
+            if (!searchLower) {
+                // Show all schools
+                document.querySelectorAll('.school-item').forEach(item => {
+                    item.style.display = 'block';
+                });
+
+                document.querySelectorAll('.district-accordion').forEach(district => {
+                    district.style.display = 'block';
+                });
+
+                document.querySelectorAll('.category-accordion').forEach(category => {
+                    category.style.display = 'block';
+                });
+
+                document.getElementById('visibleSchools').textContent = allSchools.length;
+                return;
+            }
+
+            let visibleCount = 0;
+
+            // Filter school items
+            document.querySelectorAll('.school-item').forEach(item => {
+                const schoolName = item.querySelector('.school-name').textContent.toLowerCase();
+                const schoolDetails = item.querySelector('.school-details').textContent.toLowerCase();
+
+                if (schoolName.includes(searchLower) || schoolDetails.includes(searchLower)) {
+                    item.style.display = 'block';
+                    visibleCount++;
+
+                    // Ensure parent containers are visible and expanded
+                    const categoryAccordion = item.closest('.category-accordion');
+                    const districtAccordion = item.closest('.district-accordion');
+                    
+                    if (categoryAccordion) {
+                        categoryAccordion.style.display = 'block';
+                        const categoryHeader = categoryAccordion.querySelector('.category-header');
+                        const categoryContent = categoryAccordion.querySelector('.category-content');
+                        
+                        if (!categoryHeader.classList.contains('active')) {
+                            categoryHeader.classList.add('active');
+                            categoryContent.classList.add('active');
+                            categoryHeader.querySelector('.fa-chevron-down').style.transform = 'rotate(180deg)';
+                        }
+                    }
+                    
+                    if (districtAccordion) {
+                        districtAccordion.style.display = 'block';
+                        const districtHeader = districtAccordion.querySelector('.district-header');
+                        const districtContent = districtAccordion.querySelector('.district-content');
+                        
+                        if (!districtHeader.classList.contains('active')) {
+                            districtHeader.classList.add('active');
+                            districtContent.classList.add('active');
+                            districtHeader.querySelector('.fa-chevron-down').style.transform = 'rotate(180deg)';
+                        }
+                    }
+                } else {
+                    item.style.display = 'none';
+                }
+            });
+
+            // Hide districts and categories with no visible schools
+            document.querySelectorAll('.category-accordion').forEach(category => {
+                const visibleItems = category.querySelectorAll('.school-item[style="display: block"]');
+                if (visibleItems.length === 0) {
+                    category.style.display = 'none';
+                }
+            });
+
+            document.querySelectorAll('.district-accordion').forEach(district => {
+                const visibleCategories = district.querySelectorAll('.category-accordion[style="display: block"]');
+                if (visibleCategories.length === 0) {
+                    district.style.display = 'none';
+                }
+            });
+
+            // Update visible count
+            document.getElementById('visibleSchools').textContent = visibleCount;
+        }
+
+        // Show temporary notification
+        function showNotification(message) {
+            // Create notification element
+            const notification = document.createElement('div');
+            notification.style.cssText = `
+                position: fixed;
+                top: 20px;
+                right: 20px;
+                background-color: #4CAF50;
+                color: white;
+                padding: 15px 20px;
+                border-radius: 5px;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+                z-index: 10000;
+                font-weight: 500;
+                max-width: 300px;
+                animation: fadeInOut 3s ease-in-out;
+            `;
+
+            // Add keyframes for animation
+            const style = document.createElement('style');
+            style.textContent = `
+                @keyframes fadeInOut {
+                    0% { opacity: 0; transform: translateY(-10px); }
+                    10% { opacity: 1; transform: translateY(0); }
+                    90% { opacity: 1; transform: translateY(0); }
+                    100% { opacity: 0; transform: translateY(-10px); }
+                }
+            `;
+            document.head.appendChild(style);
+
+            notification.textContent = message;
+            document.body.appendChild(notification);
+
+            // Remove after animation completes
+            setTimeout(() => {
+                notification.remove();
+                style.remove();
+            }, 3000);
+        }
+
+        // Make openSchoolDetails available globally
+        window.openSchoolDetails = openSchoolDetails;
+    </script>
+</body>
+
+</html>
